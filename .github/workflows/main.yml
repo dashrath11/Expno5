@@ -18,7 +18,7 @@ jobs:
           # Your ML workflow goes here
           npm install -g @dvcorg/cml
           python3 -m pip install -r requirements.txt
-	        python3 expno5.py
+          python3 expno5.py
           echo "Model Metrics" > report.md
           cat metrics.txt >> report.md
           echo "Model Performance" >> report.md
