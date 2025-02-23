@@ -1,0 +1,30 @@
+name: mlops
+on: [push]
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    container: 
+      image: ubuntu:22.04  # Ensures GLIBC_2.28+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Node.js  
+        uses: actions/setup-node@v3 
+      - name: Install Python
+        run: |
+          apt update && apt install -y python3 python3-pip
+      - name: 'Train my model'
+        env:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+
+          # Your ML workflow goes here
+          npm install -g @dvcorg/cml
+          python3 -m pip install -r requirements.txt
+          python3 expno5.py
+          echo "Model Metrics" > report.md
+          cat metrics.txt >> report.md
+          echo "Model Performance" >> report.md
+          echo "Model performance metrics are on the plot below." >> report.md
+          cml-publish model_results.png --md >> report.md
+          cml-send-comment report.md
+
