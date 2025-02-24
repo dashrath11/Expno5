@@ -1,0 +1,35 @@
+name: mlops
+on: [push]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    container: docker://ubuntu:22.04  # Using Ubuntu 22.04 to avoid GLIBC issues
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: |
+          apt update && apt install -y python3 python3-pip git nodejs npm
+          ln -s /usr/bin/python3 /usr/bin/python  # Ensure 'python' command works
+          npm install -g @dvcorg/cml
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Train and Evaluate Model
+        env:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python expno5.py  # Runs your ML model
+
+          # Generate Report
+          echo "Model Metrics" > report.md
+          cat metrics.txt >> report.md
+          echo "Model Performance" >> report.md
+          echo "Model performance metrics are shown in the plot below." >> report.md
+
+          # Publish Results
+          cml-publish model_results.png --md >> report.md
+          cml-send-comment report.md
