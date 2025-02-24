@@ -1,0 +1,31 @@
+name: mlops
+on: [push]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    container: docker://dvcorg/cml-py3:latest  # Pre-built with Python & Node.js
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install CML (via npm)
+        run: |
+          npm install -g @dvcorg/cml
+          which cml || echo "CML not found!"
+
+      - name: Train my model
+        env:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pip install -r requirements.txt
+          python expno5.py
+
+          echo "Model Metrics" > report.md
+          cat metrics.txt >> report.md
+          echo "Model Performance" >> report.md
+          echo "Model performance metrics are on the plot below." >> report.md
+
+          cml-publish model_results.png --md >> report.md
+          cml-send-comment report.md
