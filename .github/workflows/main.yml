@@ -48,6 +48,6 @@ jobs:
           echo "Model performance metrics are shown in the plot below." >> report.md
 
           echo "Publishing Results..."
-          #cat report.md | cml comment create --publish model_results.png --target pr
+          #cat report.md | cml comment create --publish model_results.png --target p
 	  cat report.md | cml comment create --target commit
 
