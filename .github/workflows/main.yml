@@ -50,4 +50,4 @@ jobs:
           echo "Publishing Results..."
           #cat report.md | cml comment create --publish model_results.png --target pr
           #cat report.md | cml comment create --target commit
-	  #cat report.md | cml comment create --publish --target pr
+	  cat report.md | cml comment create --publish --target pr
