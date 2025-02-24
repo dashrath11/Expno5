@@ -1,0 +1,32 @@
+name: mlops
+on: [push]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    container: docker://ubuntu:20.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Python & Pip
+        run: |
+          apt update
+          apt install -y python3 python3-pip
+          python3 -m pip install --upgrade pip
+
+      - name: Train my model
+        env:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 -m pip install -r requirements.txt
+          python3 file2.py
+
+          echo "Model Metrics" > report.md
+          cat metrics.txt >> report.md
+          echo "Model Performance" >> report.md
+          echo "Model performance metrics are on the plot below." >> report.md
+
+          cml-publish model_results.png --md >> report.md
+          cml-send-comment report.md
