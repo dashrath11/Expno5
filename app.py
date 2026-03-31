@@ -5,7 +5,7 @@ import numpy as np
 app = Flask(__name__)
 
 # Load trained model
-model = joblib.load("model1.pkl")
+model = joblib.load("expno5.pkl")
 
 @app.route('/')
 def home():
