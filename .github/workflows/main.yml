@@ -1,0 +1,56 @@
+name: mlops
+
+on: [push]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    container: docker://dvcorg/cml-py3:latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Upgrade GLIBC (Fix Node.js Error)
+        run: |
+          sudo apt update
+          sudo apt install -y libc-bin
+          wget http://ftp.gnu.org/gnu/libc/glibc-2.28.tar.gz
+          tar -xvzf glibc-2.28.tar.gz
+          cd glibc-2.28
+          mkdir build
+          cd build
+          ../configure --prefix=/opt/glibc-2.28
+          make -j$(nproc)
+          sudo make install
+          echo "LD_LIBRARY_PATH=/opt/glibc-2.28/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; else echo "ERROR: requirements.txt not found" && exit 1; fi
+
+      - name: Train Model
+        run: |
+          if [ -f file2.py ]; then python file2.py; else echo "ERROR: file2.py not found" && exit 1; fi
+
+      - name: Generate Report
+        run: |
+          echo "Model Metrics" > report.md
+          if [ -f metrics.txt ]; then cat metrics.txt >> report.md; else echo "WARNING: metrics.txt not found" >> report.md; fi
+          echo "Model Performance" >> report.md
+          echo "Model performance metrics are on the plot below." >> report.md
+
+      - name: Publish Model Results
+        run: |
+          if [ -f model_results.png ]; then
+            cml-publish model_results.png --md >> report.md
+          else
+            echo "WARNING: model_results.png not found, skipping image publishing." >> report.md
+          fi
+
+      - name: Send Report as Comment
+        env:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cml-send-comment report.md
